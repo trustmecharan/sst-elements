@@ -22,7 +22,7 @@
 #include <queue>
 
 //Header file will be changed to the RTL C-model under test
-#include "rtl_header.h"
+#include "rtl_header_riscv_mini.h"
 #include <sst/core/link.h>
 #include <sst/core/clock.h>
 #include <sst/core/eli/elementinfo.h>
@@ -35,12 +35,34 @@
 #undef UNLIKELY
 #include "AXI_port.h"
 
+struct mm_rresp_t
+{
+  uint64_t id;
+  std::vector<char> data;
+  bool last;
+
+  mm_rresp_t(uint64_t id, std::vector<char> data, bool last)
+  {
+    this->id = id;
+    this->data = data;
+    this->last = last;
+  }
+
+  mm_rresp_t()
+  {
+    this->id = 0;
+    this->last = false;
+  }
+};
+
 namespace SST {
     namespace RtlComponent {
-
+    
 class Rtlmodel : public SST::Component {
 
 public:
+    //AXI structs
+
 	Rtlmodel( SST::ComponentId_t id, SST::Params& params );
     ~Rtlmodel();
 
@@ -87,12 +109,36 @@ public:
             {"memory", "Interface to the memoryHierarchy (e.g., caches)", "SST::Interfaces::StandardMem" }
     )
 
-    void generateReadRequest(RtlReadEvent* rEv);
+    void generateReadRequest(bool isAXIReadRequest, RtlReadEvent* rEv);
     void generateWriteRequest(RtlWriteEvent* wEv);
     void setDataAddress(uint8_t*);
     uint8_t* getDataAddress();
     void setBaseDataAddress(uint8_t*);
     uint8_t* getBaseDataAddress();
+
+    //AXI APIs
+    bool AXI_ar_ready() { return true; }
+    bool AXI_aw_ready() { return !store_inflight; }
+    bool AXI_w_ready() { return store_inflight; }
+    bool AXI_b_valid() { return !bresp.empty(); }
+    uint64_t AXI_b_resp() { return 0; }
+    uint64_t AXI_b_id() { return AXI_b_valid() ? bresp.front() : 0; }
+    bool AXI_r_valid() { return !rresp.empty(); }
+    uint64_t AXI_r_resp() { return 0; }
+    uint64_t AXI_r_id() { return AXI_r_valid() ? rresp.front().id: 0; }
+    void * AXI_r_data() { return AXI_r_valid() ? &rresp.front().data[0] : &dummy_data[0]; }
+    bool AXI_r_last() { return AXI_r_valid() ? rresp.front().last : false; }
+    void AXI_tick( bool reset, 
+               bool ar_valid, uint64_t ar_addr, uint64_t ar_id, uint64_t ar_size, uint64_t ar_len,
+               bool aw_valid, uint64_t aw_addr, uint64_t aw_id, uint64_t aw_size, uint64_t aw_len,
+               bool w_valid, uint64_t w_strb, void *w_data, bool w_last, 
+               bool r_ready, 
+               bool b_ready );
+  void AXI_write(uint64_t addr, char *data);
+  void AXI_write(uint64_t addr, char *data, uint64_t strb, uint64_t size);
+  void AXI_read(uint64_t addr);
+
+  void cpu_mem_tick(bool verbose, bool done_reset);
 
 private:
 	SST::Output output;
@@ -108,7 +154,7 @@ private:
     void handleArielEvent(SST::Event *ev);
     void handleMemEvent(Interfaces::StandardMem::Request* event);
     void handleAXISignals(uint8_t);
-    void commitReadEvent(const uint64_t address, const uint64_t virtAddr, const uint32_t length);
+    void commitReadEvent(bool isAXIReadRequest, const uint64_t address, const uint64_t virtAddr, const uint32_t length);
     void commitWriteEvent(const uint64_t address, const uint64_t virtAddr, const uint32_t length, const uint8_t* payload);
     void sendArielEvent();
     uint64_t* getAXIDataAddress();
@@ -140,6 +186,7 @@ private:
     uint64_t fifo_deq_$old = 0, fifo_deq_$next = 0;
 
     std::unordered_map<Interfaces::StandardMem::Request::id_t, Interfaces::StandardMem::Request*>* pendingTransactions;
+    std::unordered_map<Interfaces::StandardMem::Request::id_t, Interfaces::StandardMem::Request*>* AXIReadPendingTransactions;
     std::unordered_map<uint64_t, uint64_t> VA_VA_map;
     uint32_t pending_transaction_count;
 
@@ -159,6 +206,35 @@ private:
 
     uint64_t tickCount;
     uint64_t dynCycles; 
+
+    char *tempptr;
+    char *bin_ptr;
+    bool isRead;
+    bool isLoaded;
+    bool isWritten;
+    bool canStartRead;
+    bool isRespReceived;
+
+    //AXI variables
+    char* data;
+    size_t size;
+    size_t word_size;
+
+    bool store_inflight;
+    uint64_t store_addr;
+    uint64_t store_id;
+    uint64_t store_size;
+    uint64_t store_count;
+    std::vector<char> dummy_data;
+    std::queue<uint64_t> bresp;
+
+    std::queue<mm_rresp_t> rresp;
+
+    uint64_t cycle;
+
+    uint64_t curr_ar_id;
+
+    unsigned int mCycles;
 };
 
  } //namespace RtlComponent 

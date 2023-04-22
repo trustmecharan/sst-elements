@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
   io_load = UInt<1>(1);
   ctrl_ptr[1] = io_load;
 
-  params->perform_update(false, true, true, true, true, false, false, 1);
+  params->perform_update(false, true, true, true, true, false, false, 100000);
   params->storetomem(shmem);
   ctrl_ptr[1] = io_load;
   params->storetomem(shmem);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
   io_load = UInt<1>(0);
   ctrl_ptr[1] = io_load;
 
-  params->perform_update(false, true, true, true, true, true, true, 10);
+  params->perform_update(false, true, true, true, true, false, false, 100000);
   params->storetomem(shmem);
   ctrl_ptr[1] = io_load;
   params->storetomem(shmem);

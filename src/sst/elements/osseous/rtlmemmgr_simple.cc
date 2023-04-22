@@ -54,8 +54,7 @@ void RtlMemoryManagerSimple::allocate(const uint64_t size, const uint32_t level,
     uint64_t nextVirtPage = virtualAddress;
     for(uint64_t bytesLeft = 0; bytesLeft < roundedSize; bytesLeft += pageSize) {
         if(freePages->empty()) {
-                output->fatal(CALL_INFO, -1, "Requested a memory allocation of size: %" PRIu64 " which failed due to not having enough free pages\n",
-                    size);
+                output->fatal(CALL_INFO, -1, "Requested a memory allocation of size: %" PRIu64 " which failed due to not having enough free pages\n", size);
         }
 
         output->verbose(CALL_INFO, 1, 0, "\nAllocation, Popping freepages");

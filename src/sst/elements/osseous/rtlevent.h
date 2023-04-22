@@ -17,7 +17,7 @@
 #define _RTLEVENT_H
 
 #include "uint.h"
-#include "rtl_header.h"
+#include "rtl_header_riscv_mini.h"
 #include <sst/core/simulation.h>
 #include <string>
 #include <sst/core/event.h>

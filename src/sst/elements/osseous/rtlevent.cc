@@ -17,13 +17,14 @@
 
 #include "uint.h"
 #include "sint.h"
-#include "rtl_header.h"
+//#include "rtl_header.h"
 #include "rtlevent.h"
 
 using namespace SST;
 using namespace SST::RtlComponent;
 
 void RTLEvent::UpdateRtlSignals(void *update_data, Rtlheader* cmodel, uint64_t& cycles) {
+    /*
     bool* update_rtl_params = (bool*)update_data; 
     update_inp = update_rtl_params[0];
     update_ctrl = update_rtl_params[1];
@@ -50,10 +51,11 @@ void RTLEvent::UpdateRtlSignals(void *update_data, Rtlheader* cmodel, uint64_t& 
         ctrl_ptr = (void*)(&rtl_inp_ptr[5]);
         control_sigs(cmodel);
     }
+    */
 }
 
 void RTLEvent::input_sigs(Rtlheader* cmodel) {
-
+/*
     cmodel->reset = UInt<1>(1);
     //Cast all the variables to 4 byte UInt types for uniform storage for now. Later, we either will remove UInt and SInt and use native types. Even then we would need to cast the every variables based on type, width and order while storing in shmem and accordingly access it at runtime from shmem.   
     UInt<4>* rtl_inp_ptr = (UInt<4>*)inp_ptr;
@@ -72,10 +74,11 @@ void RTLEvent::input_sigs(Rtlheader* cmodel) {
     output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_2.str().c_str());
     output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_3.str().c_str());
     return;
+    */
 }
 
 void RTLEvent::control_sigs(Rtlheader* cmodel) {
-
+/*
     output.verbose(CALL_INFO, 1, 0, "\nctrl_sigs called"); 
     cmodel->reset = UInt<1>(1);
     UInt<1>* rtl_ctrl_ptr = (UInt<1>*)ctrl_ptr;
@@ -88,5 +91,6 @@ void RTLEvent::control_sigs(Rtlheader* cmodel) {
     output.verbose(CALL_INFO, 1, 0, "ctrl_sigs: %s", io_shift.str().c_str());
     output.verbose(CALL_INFO, 1, 0, "ctrl_sigs: %s", io_load.str().c_str());
     return;
+    */
 }
 
