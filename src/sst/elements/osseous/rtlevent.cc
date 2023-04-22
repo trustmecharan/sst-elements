@@ -46,47 +46,41 @@ void RTLEvent::UpdateRtlSignals(void *update_data, Rtlheader* cmodel, uint64_t& 
     }
 
     if(update_ctrl) {
+        /*
         UInt<4>* rtl_inp_ptr = (UInt<4>*)inp_ptr;
         ctrl_ptr = (void*)(&rtl_inp_ptr[5]);
         control_sigs(cmodel);
+        */
     }
 }
 
 void RTLEvent::input_sigs(Rtlheader* cmodel) {
 
-    cmodel->reset = UInt<1>(1);
     //Cast all the variables to 4 byte UInt types for uniform storage for now. Later, we either will remove UInt and SInt and use native types. Even then we would need to cast the every variables based on type, width and order while storing in shmem and accordingly access it at runtime from shmem.   
-    UInt<4>* rtl_inp_ptr = (UInt<4>*)inp_ptr;
-    cmodel->io_ins_0 = rtl_inp_ptr[0];
-    cmodel->io_ins_1 = rtl_inp_ptr[1];
-    cmodel->io_ins_2 = rtl_inp_ptr[2];
-    cmodel->io_ins_3 = rtl_inp_ptr[3];
-    cmodel->reset = UInt<1>(0);
-    stringstream io_ins_0, io_ins_1, io_ins_2, io_ins_3;
-    io_ins_0 << cmodel->io_ins_0;
-    io_ins_1 << cmodel->io_ins_1;
-    io_ins_2 << cmodel->io_ins_2;
-    io_ins_3 << cmodel->io_ins_3;
-    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_0.str().c_str());
-    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_1.str().c_str());
-    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_2.str().c_str());
-    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_ins_3.str().c_str());
+    UInt<1>* rtl_inp_ptr = (UInt<1>*)inp_ptr;
+    cmodel->reset = rtl_inp_ptr[0];
+    UInt<1>* rtl_inp_ptr1 = (UInt<1>*)&rtl_inp_ptr[1];
+    cmodel->io_inc = rtl_inp_ptr1[0];
+    UInt<4>* rtl_inp_ptr2 = (UInt<4>*)&rtl_inp_ptr1[1];
+    cmodel->io_amt = rtl_inp_ptr2[0];
+    stringstream reset, io_inc, io_amt;
+    reset << cmodel->reset;
+    io_inc << cmodel->io_inc;
+    io_amt << cmodel->io_amt;
+    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", reset.str().c_str());
+    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_inc.str().c_str());
+    output.verbose(CALL_INFO, 1, 0, "input_sigs: %s", io_amt.str().c_str());
     return;
 }
 
 void RTLEvent::control_sigs(Rtlheader* cmodel) {
-
+/*
     output.verbose(CALL_INFO, 1, 0, "\nctrl_sigs called"); 
-    cmodel->reset = UInt<1>(1);
     UInt<1>* rtl_ctrl_ptr = (UInt<1>*)ctrl_ptr;
-    cmodel->io_shift = rtl_ctrl_ptr[0];
-    cmodel->io_load = rtl_ctrl_ptr[1];
-    cmodel->reset = UInt<1>(0);
-    stringstream io_shift, io_load;
-    io_shift << cmodel->io_shift;
-    io_load << cmodel->io_load;
-    output.verbose(CALL_INFO, 1, 0, "ctrl_sigs: %s", io_shift.str().c_str());
-    output.verbose(CALL_INFO, 1, 0, "ctrl_sigs: %s", io_load.str().c_str());
+    cmodel->reset = rtl_ctrl_ptr[0];
+    stringstream reset;
+    output.verbose(CALL_INFO, 1, 0, "ctrl_sigs: %s", reset.str().c_str());
     return;
+    */
 }
 

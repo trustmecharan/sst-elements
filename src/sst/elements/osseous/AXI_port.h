@@ -81,11 +81,11 @@ typedef struct AXI4Writer {
   }
 } AXI4Writer;
 
-typedef struct CSR {
+typedef struct mCSR {
 
-  CSR() {
+  mCSR() {
   }
-} CSR;
+} mCSR;
 
 typedef struct AddressGenerator {
   UInt<2> state;
@@ -315,7 +315,7 @@ typedef struct AXITop {
   AXI4LiteCSR csrFrontend;
   AXIStreamSlave readerFrontend;
   AXI4Writer writerFrontend;
-  CSR csr;
+  mCSR csr;
   WorkerCSRWrapper ctl;
   Queue queue;
 

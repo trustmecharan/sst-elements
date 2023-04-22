@@ -23,19 +23,19 @@ int main(int argc, char *argv[]) {
   const int LENGTH = 32768;
 
   ariel_enable();
-
+/*
   printf("Allocating arrays of size %d elements.\n", LENGTH);
   double *a = (double *)mlm_malloc(sizeof(double) * LENGTH, 0);
   double *b = (double *)mlm_malloc(sizeof(double) * LENGTH, 0);
   double *fast_c = (double *)mlm_malloc(sizeof(double) * LENGTH, 0);
-
-  UInt<4> io_ins_0, io_ins_1, io_ins_2, io_ins_3, io_out;
-  UInt<1> io_load, io_shift;
-  UInt<4> *inp_ptr;
+*/
+  UInt<1> reset, io_inc;
+  UInt<4> io_amt;
+  UInt<1> *inp_ptr;
   UInt<1> *ctrl_ptr;
 
   mlm_set_pool(1);
-
+/*
   printf("Allocation for fast_c is %llu\n", (unsigned long long int)fast_c);
   double *c = (double *)malloc(sizeof(double) * LENGTH);
   printf("Done allocating arrays.\n");
@@ -61,62 +61,69 @@ int main(int argc, char *argv[]) {
   // Now copy results back
   mlm_Tag copy_tag = mlm_memcpy(c, fast_c, sizeof(double) * LENGTH);
   mlm_waitComplete(copy_tag);
+*/
+  reset = UInt<1>(1);
+  io_inc = UInt<1>(0);
+  io_amt= UInt<4>(1);
 
-  io_shift = UInt<1>(1);
-  io_ins_0 = UInt<4>(2);
-  io_ins_1 = UInt<4>(5);
-  io_ins_2 = UInt<4>(6);
-  io_ins_3 = UInt<4>(7);
-  io_load = UInt<1>(0);
 
-  size_t inp_size = sizeof(UInt<4>) * 5;
-  size_t ctrl_size = sizeof(UInt<1>) * 2;
+  size_t inp_size = sizeof(UInt<1>) + sizeof(UInt<1>) + sizeof(UInt<4>) ;
+  size_t ctrl_size = sizeof(UInt<1>);
   RTL_shmem_info *shmem = new RTL_shmem_info(inp_size, ctrl_size);
 
-  inp_ptr = (UInt<4>*)shmem->get_inp_ptr();
+  inp_ptr = (UInt<1>*)shmem->get_inp_ptr();
   ctrl_ptr = (UInt<1>*)shmem->get_ctrl_ptr();
 
-  ctrl_ptr[0] = io_shift;
-  ctrl_ptr[1] = io_load;
-  inp_ptr[0] = io_ins_0;
-  inp_ptr[1] = io_ins_1;
-  inp_ptr[2] = io_ins_2;
-  inp_ptr[3] = io_ins_3;
+  inp_ptr[0] = reset;
+  inp_ptr[1] = io_inc;
+  UInt<4> *tmp_ptr = (UInt<4>*)&inp_ptr[2];
+  tmp_ptr[0] = io_amt;
 
   Update_RTL_Params *params = new Update_RTL_Params();
   params->storetomem(shmem);
-  params->check(shmem);
-  ctrl_ptr[0] = io_shift;
-  ctrl_ptr[1] = io_load;
-  inp_ptr[0] = io_ins_0;
-  inp_ptr[1] = io_ins_1;
-  inp_ptr[2] = io_ins_2;
-  inp_ptr[3] = io_ins_3;
+  inp_ptr[0] = reset;
+  inp_ptr[1] = io_inc;
+  tmp_ptr[0] = io_amt;
   params->storetomem(shmem);
 
   start_RTL_sim(shmem);
   bool *check = (bool *)shmem->get_inp_ptr();
   printf("\nSimulation started\n");
 
-  io_load = UInt<1>(1);
-  ctrl_ptr[1] = io_load;
+  reset = UInt<1>(1);
+  inp_ptr[0] = reset;
 
-  params->perform_update(false, true, true, true, true, false, false, 1);
+  params->perform_update(true, true, true, true, true, false, false, 2);
   params->storetomem(shmem);
-  ctrl_ptr[1] = io_load;
-  params->storetomem(shmem);
-  update_RTL_sig(shmem);
-
-  io_load = UInt<1>(0);
-  ctrl_ptr[1] = io_load;
-
-  params->perform_update(false, true, true, true, true, true, true, 10);
-  params->storetomem(shmem);
-  ctrl_ptr[1] = io_load;
+  inp_ptr[0] = reset;
   params->storetomem(shmem);
   update_RTL_sig(shmem);
 
+  reset = UInt<1>(0);
+  io_inc = UInt<1>(1);
+  io_amt= UInt<4>(1);
+  inp_ptr[0] = reset;
+  inp_ptr[1] = io_inc;
+  tmp_ptr[0] = io_amt;
 
+  params->perform_update(true, true, true, true, true, true, false, 4);
+  params->storetomem(shmem);
+  inp_ptr[0] = reset;
+  inp_ptr[1] = io_inc;
+  tmp_ptr[0] = io_amt;
+  params->storetomem(shmem);
+  update_RTL_sig(shmem);
+
+  io_amt = UInt<4>(2);
+  tmp_ptr[0] = io_amt;
+
+  params->perform_update(true, true, true, true, true, true, true, 4);
+  params->storetomem(shmem);
+  tmp_ptr[0] = io_amt;
+  params->storetomem(shmem);
+  update_RTL_sig(shmem);
+
+/*
   double sum = 0;
   for (i = 0; i < LENGTH; ++i) {
     sum += c[i];
@@ -129,7 +136,7 @@ int main(int argc, char *argv[]) {
   mlm_free(b);
   mlm_free(fast_c);
   free(c);
-
+*/
   delete shmem;
   delete params;
 

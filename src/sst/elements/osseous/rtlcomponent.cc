@@ -198,6 +198,7 @@ bool Rtlmodel::clockTick( SST::Cycle_t currentCycle ) {
         tickCount++;
     }
 	if( tickCount >= sim_cycle) {
+        isStalled = true;
         if(ev.sim_done) {
             output.verbose(CALL_INFO, 1, 0, "OKToEndSim, TickCount %" PRIu64, tickCount);
             RtlAckEv->setEndSim(true);
@@ -291,7 +292,7 @@ void Rtlmodel::handleAXISignals(uint8_t tready) {
 
 void Rtlmodel::handleMemEvent(StandardMem::Request* event) {
     StandardMem::ReadResp* read = (StandardMem::ReadResp*)event;
-    output.verbose(CALL_INFO, 4, 0, " handling a memory event in RtlModel.\n");
+    //output.verbose(CALL_INFO, 4, 0, " handling a memory event in RtlModel.\n");
     StandardMem::Request::id_t mev_id = read->getID();
 
     auto find_entry = pendingTransactions->find(mev_id);
@@ -306,7 +307,7 @@ void Rtlmodel::handleMemEvent(StandardMem::Request* event) {
             output.fatal(CALL_INFO, -1, "Error: DataAddress corresponding to VA: %" PRIu64, read->vAddr);
 
         //Actual reading of data from memEvent and storing it to getDataAddress
-        output.verbose(CALL_INFO, 1, 0, "\nAddress is: %" PRIu64, (uint64_t)getDataAddress());
+        //output.verbose(CALL_INFO, 1, 0, "\nAddress is: %" PRIu64, (uint64_t)getDataAddress());
         for(i = 0; i < read->data.size(); i++)
             getDataAddress()[i] = read->data[i]; 
 
@@ -326,7 +327,6 @@ void Rtlmodel::handleMemEvent(StandardMem::Request* event) {
             isStalled = false;
         }
     } 
-    
     else 
         output.fatal(CALL_INFO, -4, "Memory event response to VecShiftReg was not found in pending list.\n");
         
