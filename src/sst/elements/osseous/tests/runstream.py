@@ -110,7 +110,7 @@ memctrl.addParams({
 
 memory = memctrl.setSubComponent("backend", "memHierarchy.simpleMem")
 memory.addParams({
-        "access_time" : "10ns",
+        "access_time" : "10ns", 
         "mem_size" : "2048MiB",
 })
 
